@@ -33,7 +33,7 @@ The infrastructure is deployed using Terraform and is divided into two main stac
 
 The project features a simple and intuitive web interface built with Streamlit, allowing users to interact with the knowledge base in a conversational manner.
 
-![Streamlit Application UI](screenshots/streamlit-ui.png)
+![Streamlit Application UI](https://github.com/calin-tesu/Udacity-GenAI-Capstone-DocQuery/blob/main/Screenshots/streamlit%20interface.png)
 
 
 ## Prerequisites
