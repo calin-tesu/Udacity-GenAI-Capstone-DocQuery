@@ -24,7 +24,7 @@ This project demonstrates the implementation of a full Retrieval-Augmented Gener
 ### Udacity Nanodegree Context
 This project serves as the capstone requirement for the "Future AWS AI Engineer - Generative AI" nanodegree from Udacity. The scholarship for this program was provided by Amazon AWS, focusing on practical, hands-on skills in building and deploying generative AI applications on the AWS cloud.
 
-**Certification:** [View Verified Diploma](www.udacity.com/certificate/e/b15cc804-8152-11f0-b385-4b316d10a96c)
+**Certification:** [View Verified Diploma](https://www.udacity.com/certificate/e/b15cc804-8152-11f0-b385-4b316d10a96c)
 
 ## Architecture
 The infrastructure is deployed using Terraform and is divided into two main stacks:
