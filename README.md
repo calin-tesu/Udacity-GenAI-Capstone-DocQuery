@@ -24,6 +24,8 @@ This project demonstrates the implementation of a full Retrieval-Augmented Gener
 ### Udacity Nanodegree Context
 This project serves as the capstone requirement for the "Future AWS AI Engineer - Generative AI" nanodegree from Udacity. The scholarship for this program was provided by Amazon AWS, focusing on practical, hands-on skills in building and deploying generative AI applications on the AWS cloud.
 
+**Certification:** [View Verified Diploma](www.udacity.com/certificate/e/b15cc804-8152-11f0-b385-4b316d10a96c)
+
 ## Architecture
 The infrastructure is deployed using Terraform and is divided into two main stacks:
 - **Stack 1:** Sets up the foundational resources, including a VPC, an Aurora Serverless PostgreSQL cluster (for vector storage), an S3 bucket for documents, and the necessary IAM roles.
@@ -33,7 +35,7 @@ The infrastructure is deployed using Terraform and is divided into two main stac
 
 The project features a simple and intuitive web interface built with Streamlit, allowing users to interact with the knowledge base in a conversational manner.
 
-![Streamlit Application UI](screenshots/streamlit-ui.png)
+![Streamlit Application UI](https://github.com/calin-tesu/Udacity-GenAI-Capstone-DocQuery/blob/main/Screenshots/streamlit%20interface.png)
 
 
 ## Prerequisites
