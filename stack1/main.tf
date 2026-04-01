@@ -4,25 +4,38 @@
 # and an S3 bucket for knowledge base documents.
 #
 
+# The "provider" block tells Terraform which cloud service we are using.
 provider "aws" {
-  region = "us-west-2"  # Change this to your desired region
+  region = "us-west-2"  # All resources defined below will be created in this AWS region.
 }
 
-# Creates a dedicated VPC with public and private subnets for the application.
+# A "module" is a reusable package of Terraform configurations. 
+# Instead of writing hundreds of lines to set up a network, we use a verified 
+# blueprint from the Terraform Registry.
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
   name = "bedrock-poc-vpc"
+  # CIDR block defines the IP address range for the entire network (10.0.0.0 to 10.0.255.255).
   cidr = "10.0.0.0/16"
 
+  # Availability Zones (AZs) are isolated data centers within a region. 
+  # Distributing subnets across 3 AZs provides "High Availability."
   azs             = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  
+  # Private subnets: Resources here (like databases) have NO direct internet access.
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  
+  # Public subnets: Resources here can be reached via the internet (using an Internet Gateway).
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 
+  # NAT Gateway: Allows resources in private subnets to reach out to the internet 
+  # (e.g., to download updates) without allowing the internet to reach in.
   enable_nat_gateway = true
-  single_nat_gateway = true
+  single_nat_gateway = true # Saves money by using one gateway instead of one per AZ.
 
+  # DNS settings allow AWS to give friendly hostnames to your resources (like db.example.com).
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -32,42 +45,60 @@ module "vpc" {
   }
 }
 
-# Provisions a PostgreSQL-compatible Aurora Serverless v2 database.
+# This module points to a local folder you created (../modules/database).
+# It abstracts the complexity of setting up a Serverless Aurora cluster.
 module "aurora_serverless" {
   source = "../modules/database"
 
   cluster_identifier = "my-aurora-serverless"
+  
+  # We pass the outputs from the VPC module into this module. 
+  # This creates a dependency: Terraform knows it must build the VPC before the DB.
   vpc_id             = module.vpc.vpc_id 
   subnet_ids         = module.vpc.private_subnets
 
-  # Optionally override other defaults
   database_name    = "myapp"
   master_username  = "dbadmin"
-  engine_version = "16.4" # Specific version for compatibility or feature requirements.
+  engine_version   = "16.4" 
+  
+  # Aurora Serverless v2 scales based on ACUs (Aurora Capacity Units).
+  # 0.5 is the minimum; 1 is the max for this POC to keep costs low.
   max_capacity     = 1
   min_capacity     = 0.5
+  
+  # Security: Only allow traffic from within the VPC's IP range.
   allowed_cidr_blocks = ["10.0.0.0/16"]   
 }
 
+# A "data" source fetches information that already exists in AWS or is calculated 
+# by the provider. Here, we fetch your unique AWS Account ID.
 data "aws_caller_identity" "current" {}
 
+# "locals" are like internal variables. They are useful for transforming data
+# or creating strings that you'll reuse multiple times in this file.
 locals {
-  # Create a unique bucket name based on the AWS account ID for the Bedrock knowledge base.
+  # S3 bucket names must be globally unique across all of AWS.
+  # Appending the Account ID ensures yours won't collide with someone else's.
   bucket_name = "bedrock-kb-${data.aws_caller_identity.current.account_id}"
 }
 
-# Creates an S3 bucket to store documents for the Amazon Bedrock Knowledge Base.
+# This module sets up the S3 bucket where you will upload your PDF spec sheets.
 module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "~> 3.0"
 
   bucket = local.bucket_name
   acl    = "private"
+  
+  # force_destroy: Allows Terraform to delete the bucket even if it contains files.
+  # USE WITH CAUTION in production!
   force_destroy = true
 
+  # Ownership controls help prevent accidental public exposure of your data.
   control_object_ownership = true
   object_ownership         = "BucketOwnerPreferred"
 
+  # Versioning keeps a history of your files, helpful if you accidentally overwrite a document.
   versioning = {
     enabled = true
   }
@@ -80,6 +111,8 @@ module "s3_bucket" {
     }
   }
 
+  # These four "block" settings are "Public Access Block" configurations.
+  # They are the strongest way to ensure your private documents stay private.
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
