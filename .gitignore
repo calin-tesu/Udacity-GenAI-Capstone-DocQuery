@@ -37,3 +37,4 @@ terraform.rc
 # Python bytecode and environments
 __pycache__/
 *.py[cod]
+TESU_notes.md
