@@ -4,24 +4,25 @@
 # via a remote state data source.
 #
 
+
 # The bucket that store the values generated on stack1
-terraform {
+terraform { # This backend configuration is for stack2's own state file
   backend "s3" {
-    bucket = "udacity-genai-capstone-tfstate-us-west-2-YOUR_UNIQUE_SUFFIX" # Must match the bucket name used in stack1/backend.tf
+    bucket = "udacity-genai-capstone-tfstate-YOUR_AWS_ACCOUNT_ID" # Replace YOUR_AWS_ACCOUNT_ID with your actual AWS Account ID
     region = "us-west-2"
-    key    = "foundation/terraform.tfstate" # Must match the key used in stack1/backend.tf
+    key    = "bedrock_kb/terraform.tfstate" # Unique key for stack2's state file
+    dynamodb_table = "terraform-state-lock-YOUR_AWS_ACCOUNT_ID" # Replace YOUR_AWS_ACCOUNT_ID with your actual AWS Account ID
   }
 }
 
 provider "aws" {
   region = "us-west-2"  
 }
-
 # Data source to retrieve outputs from stack1's remote state
 data "terraform_remote_state" "stack1_foundation" {
   backend = "s3"
-  config = {
-    bucket = "udacity-genai-capstone-tfstate-us-west-2-YOUR_UNIQUE_SUFFIX" # Must match the bucket name used in stack1/backend.tf
+  config = { # This configuration points to stack1's state file
+    bucket = "udacity-genai-capstone-tfstate-YOUR_AWS_ACCOUNT_ID" # Replace YOUR_AWS_ACCOUNT_ID with your actual AWS Account ID
     key    = "foundation/terraform.tfstate" # Must match the key used in stack1/backend.tf
     region = "us-west-2"
   }
