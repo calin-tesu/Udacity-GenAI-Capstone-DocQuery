@@ -53,6 +53,7 @@ Before you begin, ensure you have the following:
 project-root/
 │
 ├── bootstrap/
+|   # This directory contains the Terraform configuration for the remote state backend.
 |   ├── main.tf             # Creates S3 Bucket & DynamoDB for Remote State
 |   └── outputs.tf
 |
@@ -78,7 +79,8 @@ project-root/
 │
 ├── scripts/
 │   ├── aurora_sql.sql
-│   └── upload_to_s3.py
+│   ├── upload_to_s3.py     # Uploads documents to the S3 Knowledge Base bucket
+│   └── setup_backends.py   # Automates AWS Account ID replacement in backend configs
 │
 ├── spec-sheets/
 │   └── machine_files.pdf
@@ -93,7 +95,7 @@ project-root/
 
 2. **Deploy the Bootstrap Stack:**
    This creates the S3 bucket and DynamoDB table required to store Terraform state remotely.
-   - Navigate to `bootstrap/`
+   - Navigate to the `bootstrap/` directory at the project root:
    - Initialize (local state):
      ```bash
      terraform init
