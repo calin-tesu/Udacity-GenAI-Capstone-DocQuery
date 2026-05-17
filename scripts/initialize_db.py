@@ -1,6 +1,7 @@
 import boto3
 import time
 import os
+import sys
 
 def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path):
     rds_data = boto3.client('rds-data')
@@ -31,15 +32,20 @@ def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path):
         raise e
 
 if __name__ == "__main__":
-    # In a real scenario, you'd fetch these from Terraform outputs 
-    # or environment variables after running Stack 1.
-    
-    # You can get these values by running 'terraform output' in the stack1 directory
-    CLUSTER_ARN = input("Enter your Aurora Cluster ARN: ")
-    SECRET_ARN = input("Enter your Secrets Manager ARN: ")
+    # Check if arguments are provided via CLI, otherwise fallback to help
+    if len(sys.argv) < 3:
+        print("Usage: python initialize_db.py <CLUSTER_ARN> <SECRET_ARN>")
+        sys.exit(1)
+
+    CLUSTER_ARN = sys.argv[1]
+    SECRET_ARN = sys.argv[2]
     DB_NAME = "myapp"
     
     script_dir = os.path.dirname(__file__)
     sql_path = os.path.join(script_dir, "aurora_sql.sql")
     
+    if not os.path.exists(sql_path):
+        print(f"Error: SQL file not found at {sql_path}")
+        sys.exit(1)
+
     initialize_database(CLUSTER_ARN, SECRET_ARN, DB_NAME, sql_path)

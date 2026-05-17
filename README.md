@@ -90,66 +90,22 @@ project-root/
 
 ## Deployment Steps
 
-1. Clone this repository to your local machine.
+The deployment is fully automated via a `Makefile`.
 
-
-2. **Deploy the Bootstrap Stack:**
-   This creates the S3 bucket and DynamoDB table required to store Terraform state remotely.
-   - Navigate to the `bootstrap/` directory at the project root:
-   - Initialize (local state):
-     ```bash
-     terraform init
-     ```
-   - Deploy:
-     ```bash
-     terraform apply
-     ```
-   - **Note the outputs:** Copy the AWS Account ID or the bucket name provided in the terminal.
-
-3. **Configure Remote Backends:**
-   Terraform backends do not allow variables. To automate the configuration of your unique AWS Account ID across all files, run the provided helper script:
+1. **Full Deployment:**
+   To run the entire sequence (Bootstrap, Config, Stack 1, DB Init, Stack 2, and Ingest) in one command:
    ```bash
-   python scripts/setup_backends.py
-   ```
-   *Note: This script uses `boto3` to detect your current AWS Account ID and updates the `.tf` files automatically. Do not commit these changes if you plan to share your repository.*
-
-4. **Deploy Stack 1 (Foundation):**
-   This stack includes VPC, Aurora Serverless, and the Knowledge Base S3 bucket.
-   - Navigate to `stack1/`
-   - Initialize:
-   ```bash
-   terraform init
-   ```
-   - Deploy:
-   ```bash
-   terraform apply
+   make deploy-all
    ```
 
-5. **Prepare the Database:**
-   Before running Stack 2, the Aurora Postgres database must be initialized with the schema for vector storage.
-   - Use the AWS RDS Query Editor.
-   - Run the SQL queries found in `scripts/aurora_sql.sql`.
-
-6. **Deploy Stack 2 (Bedrock AI):**
-   This stack connects the Bedrock Knowledge Base to the infrastructure from Stack 1.
-   - Navigate to `stack2/`
-   - Initialize:
-   ```bash
-   terraform init
-   ```
-   - Deploy:
-      ```bash
-      terraform apply
-      ```
-
-7. **Ingest Data:**
-   Upload your PDF files to the S3 bucket and sync the Knowledge Base.
-   - Place files in `spec-sheets/`.
-   - Run the upload script:
-      ```bash
-      python scripts/upload_to_s3.py
-      ```
-   - In the AWS Console, trigger a **Sync** on your Bedrock Knowledge Base.
+2. **Step-by-Step Deployment:**
+   If you prefer to run steps individually:
+   - `make bootstrap`
+   - `make config`
+   - `make stack1`
+   - `make init-db`
+   - `make stack2`
+   - `make ingest`
 
 
 ## Using the Scripts
