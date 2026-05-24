@@ -165,8 +165,9 @@ project-root/
 │
 ├── scripts/
 │   ├── setup_backends.py       # Injects account ID into TF backend configs
-│   ├── initialize_db.py        # Initialises pgvector schema in Aurora
-│   └── upload_s3.py         # Uploads documents from spec-sheets/ to S3
+│   ├── aurora_sql.sql          # pgvector schema — executed automatically by initialize_db.py
+│   ├── initialize_db.py        # Initialises pgvector schema via RDS Data API (reads aurora_sql.sql)
+│   └── upload_s3.py            # Uploads documents from spec-sheets/ to S3
 │
 ├── spec-sheets/                # Place your PDF documents here before ingesting
 │
@@ -205,6 +206,9 @@ Ensure Python 3.10+ is active and `boto3` is installed (`pip install boto3`).
 
 **S3 upload fails**
 Verify your credentials have `s3:PutObject` on the target bucket.
+
+**`make init-db` hangs or retries**
+Aurora Serverless may be in a paused state after inactivity. The script detects this automatically and retries after 15 seconds. Allow up to a minute for the cluster to wake up before assuming a failure.
 
 **Bedrock Knowledge Base returns no results after ingestion**
 Confirm you triggered a **Sync** on the data source in the AWS Console after uploading documents.
