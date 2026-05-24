@@ -166,7 +166,7 @@ project-root/
 ├── scripts/
 │   ├── setup_backends.py       # Injects account ID into TF backend configs
 │   ├── initialize_db.py        # Initialises pgvector schema in Aurora
-│   └── upload_to_s3.py         # Uploads documents from spec-sheets/ to S3
+│   └── upload_s3.py         # Uploads documents from spec-sheets/ to S3
 │
 ├── spec-sheets/                # Place your PDF documents here before ingesting
 │

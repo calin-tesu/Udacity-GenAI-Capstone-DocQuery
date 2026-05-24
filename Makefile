@@ -35,7 +35,7 @@ stack2:
 
 ingest:
 	@echo "--- Ingesting Data ---"
-	python scripts/upload_to_s3.py
+	python scripts/upload_s3.py
 	@echo "Manual Step Required: Log into AWS Console and trigger 'Sync' on Bedrock Knowledge Base."
 
 deploy-all: bootstrap config stack1 init-db stack2 ingest
