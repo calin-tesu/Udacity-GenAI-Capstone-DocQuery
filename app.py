@@ -1,6 +1,10 @@
 import os
 import streamlit as st
+from dotenv import load_dotenv
 from bedrock_utils import query_knowledge_base, generate_response, valid_prompt, build_rag_prompt
+
+# Load variables from a .env file if it exists in the current directory
+load_dotenv()
 
 # --- Page config ---
 st.set_page_config(

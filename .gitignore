@@ -38,3 +38,7 @@ terraform.rc
 __pycache__/
 *.py[cod]
 TESU_notes.md
+
+# Environment variables
+.env
+.env.*
