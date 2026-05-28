@@ -6,7 +6,7 @@
 
 # The "provider" block tells Terraform which cloud service we are using.
 provider "aws" {
-  region = "us-west-2"  # All resources defined below will be created in this AWS region.
+  region = var.aws_region
 }
 
 # A "module" is a reusable package of Terraform configurations. 
@@ -16,24 +16,24 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name = "bedrock-poc-vpc"
+  name = "${var.project_name}-vpc"
   # CIDR block defines the IP address range for the entire network (10.0.0.0 to 10.0.255.255).
-  cidr = "10.0.0.0/16"
+  cidr = var.vpc_cidr
 
   # Availability Zones (AZs) are isolated data centers within a region. 
   # Distributing subnets across 3 AZs provides "High Availability."
-  azs             = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  azs             = var.vpc_azs
   
   # Private subnets: Resources here (like databases) have NO direct internet access.
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  private_subnets = var.private_subnets
   
   # Public subnets: Resources here can be reached via the internet (using an Internet Gateway).
-  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  public_subnets  = var.public_subnets
 
   # NAT Gateway: Allows resources in private subnets to reach out to the internet 
   # (e.g., to download updates) without allowing the internet to reach in.
   enable_nat_gateway = true
-  single_nat_gateway = true # Saves money by using one gateway instead of one per AZ.
+  single_nat_gateway = var.single_nat_gateway 
 
   # DNS settings allow AWS to give friendly hostnames to your resources (like db.example.com).
   enable_dns_hostnames = true
@@ -41,7 +41,7 @@ module "vpc" {
 
   tags = {
     Terraform   = "true"
-    Environment = "dev"
+    Environment = var.environment
   }
 }
 
@@ -50,24 +50,23 @@ module "vpc" {
 module "aurora_serverless" {
   source = "../modules/database"
 
-  cluster_identifier = "my-aurora-serverless"
+  cluster_identifier = "${var.project_name}-aurora"
   
   # We pass the outputs from the VPC module into this module. 
   # This creates a dependency: Terraform knows it must build the VPC before the DB.
   vpc_id             = module.vpc.vpc_id 
   subnet_ids         = module.vpc.private_subnets
 
-  database_name    = "myapp"
-  master_username  = "dbadmin"
-  engine_version   = "16.4" 
+  database_name    = var.db_name
+  master_username  = var.db_username
+  engine_version   = var.db_engine_version 
   
   # Aurora Serverless v2 scales based on ACUs (Aurora Capacity Units).
-  # 0.5 is the minimum; 1 is the max for this POC to keep costs low.
-  max_capacity     = 1
-  min_capacity     = 0.5
+  max_capacity     = var.db_max_capacity
+  min_capacity     = var.db_min_capacity
   
   # Security: Only allow traffic from within the VPC's IP range.
-  allowed_cidr_blocks = ["10.0.0.0/16"]   
+  allowed_cidr_blocks = [var.vpc_cidr]   
 }
 
 # A "data" source fetches information that already exists in AWS or is calculated 
@@ -120,6 +119,6 @@ module "s3_bucket" {
 
   tags = {
     Terraform   = "true"
-    Environment = "dev"
+    Environment = var.environment
   }
 }

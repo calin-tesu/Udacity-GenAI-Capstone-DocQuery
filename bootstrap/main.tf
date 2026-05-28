@@ -5,7 +5,7 @@
 #
 
 provider "aws" {
-  region = "us-west-2" # Ensure this matches the region you're deploying to
+  region = var.aws_region
 }
 
 # Data source to fetch the current AWS Account ID, ensuring global uniqueness for bucket names.
@@ -14,9 +14,9 @@ data "aws_caller_identity" "current" {}
 locals {
   # S3 bucket names must be globally unique across all of AWS.
   # Appending the Account ID ensures yours won't collide with someone else's.
-  tfstate_bucket_name = "udacity-genai-capstone-tfstate-${data.aws_caller_identity.current.account_id}"
+  tfstate_bucket_name = "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
   # DynamoDB table names also need to be unique within a region.
-  dynamodb_table_name = "terraform-state-lock-${data.aws_caller_identity.current.account_id}"
+  dynamodb_table_name = "${var.project_name}-state-lock-${data.aws_caller_identity.current.account_id}"
 }
 
 # Resource for the S3 bucket to store Terraform state files.
@@ -26,7 +26,7 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
 
   tags = {
     Name        = "Terraform State Bucket"
-    Environment = "dev"
+    Environment = var.environment
     ManagedBy   = "Terraform-Bootstrap"
   }
 }
@@ -74,7 +74,7 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
 
   tags = {
     Name        = "Terraform State Lock Table"
-    Environment = "dev"
+    Environment = var.environment
     ManagedBy   = "Terraform-Bootstrap"
   }
 }
