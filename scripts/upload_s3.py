@@ -1,5 +1,6 @@
 import os
 import boto3
+import sys
 from botocore.exceptions import ClientError
 
 def upload_files_to_s3(folder_path, bucket_name, prefix=""):
@@ -28,13 +29,18 @@ def upload_files_to_s3(folder_path, bucket_name, prefix=""):
                 print(f"Error uploading {relative_path}: {e}")
 
 if __name__ == "__main__":
-    # Folder path
-    folder_path = "scripts/spec-sheets"
+    # Use environment variable or command line argument
+    # This removes the hardcoded dependency on a specific account ID
+    bucket_name = os.environ.get("S3_BUCKET_NAME")
     
-    # S3 bucket name
-    bucket_name = "bedrock-kb-035459676644"  # Replace with your actual bucket name
+    if not bucket_name and len(sys.argv) > 1:
+        bucket_name = sys.argv[1]
+
+    if not bucket_name:
+        print("Error: S3_BUCKET_NAME environment variable or argument is required.")
+        sys.exit(1)
     
-    # S3 prefix (optional)
-    prefix = "spec-sheets" 
+    folder_path = "spec-sheets" # Path relative to project root
+    prefix = "spec-sheets"      # Folder inside S3
     
     upload_files_to_s3(folder_path, bucket_name, prefix)

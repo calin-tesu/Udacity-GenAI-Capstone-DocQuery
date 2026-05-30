@@ -35,7 +35,8 @@ stack2:
 
 ingest:
 	@echo "--- Ingesting Data ---"
-	python scripts/upload_s3.py
+	$(eval BUCKET_NAME := $(shell cd stack1 && terraform output -raw s3_bucket_name))
+	S3_BUCKET_NAME=$(BUCKET_NAME) python scripts/upload_s3.py
 	@echo "Manual Step Required: Log into AWS Console and trigger 'Sync' on Bedrock Knowledge Base."
 
 deploy-all: bootstrap config stack1 init-db stack2 ingest
