@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "A prefix for naming resources to ensure uniqueness."
   type        = string
-  default     = "udacity-genai-capstone"
+  default     = "docquery"
 }
 
 variable "environment" {
