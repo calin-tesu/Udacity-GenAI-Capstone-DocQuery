@@ -1,7 +1,10 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from bedrock_utils import query_knowledge_base, generate_response, valid_prompt, build_rag_prompt
+from bedrock_utils import (
+    query_knowledge_base, generate_response, valid_prompt, 
+    build_rag_prompt, BedrockInfrastructureError
+)
 
 # Load variables from a .env file if it exists in the current directory
 load_dotenv()
@@ -133,6 +136,10 @@ if prompt := st.chat_input("Ask a question about your documents..."):
                         response_text = generate_response(full_prompt, model_id, temperature, top_p)
                         sources = kb_results
 
+            except BedrockInfrastructureError as e:
+                error_code = e.error_code
+                response_text = f"❌ AWS service error ({error_code}). Please try again shortly."
+                sources = []
             except Exception as e:
                 response_text = f"❌ An unexpected error occurred: {str(e)}"
                 sources = []
