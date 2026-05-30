@@ -119,7 +119,7 @@ resource "aws_bedrockagent_knowledge_base" "main" {
       table_name = var.aurora_table_name
       field_mapping {
         primary_key_field = var.aurora_primary_key_field
-        vector_field   = var.aurora_verctor_field
+        vector_field   = var.aurora_vector_field
         text_field     = var.aurora_text_field
         metadata_field = var.aurora_metadata_field
       }

@@ -38,7 +38,7 @@ variable "aurora_secret_arn" {
   type        = string
 }
 
-variable "aurora_verctor_field" {
+variable "aurora_vector_field" {
   description = "The column name for the vector values"
   type = string  
 }

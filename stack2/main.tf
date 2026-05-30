@@ -41,7 +41,7 @@ module "bedrock_kb" {
   aurora_primary_key_field = "id"
   aurora_metadata_field = "metadata"
   aurora_text_field = "chunks"
-  aurora_verctor_field = "embedding"
+  aurora_vector_field = "embedding"
   aurora_username   = "dbadmin"
   aurora_secret_arn = data.terraform_remote_state.stack1_foundation.outputs.rds_secret_arn
   s3_bucket_arn = data.terraform_remote_state.stack1_foundation.outputs.s3_bucket_name
