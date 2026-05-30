@@ -3,33 +3,43 @@ import time
 import os
 import sys
 
-def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path):
+# Parameter Injection: I added max_retries=10 as an optional parameter.
+# This allows you to override it later if you find the database takes longer
+# to wake up in certain regions without changing the function's internal logic.
+def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path, max_retries=10):
     rds_data = boto3.client('rds-data')
     
     print(f"Reading SQL from {sql_file_path}...")
+    # The RDS Data API has a limit on the size of the sql string parameter (usually around 64KB). 
+    # For this project, aurora_sql.sql is small, so it's fine. 
+    # However, as you grow as a developer, keep in mind that if you ever have a massive migration script, 
+    # you would need to split the file and execute statements one by one in a loop rather than 
+    # reading the whole file at once
     with open(sql_file_path, 'r') as f:
-        # Split by semicolon to run statements individually, or run as one block
-        # For simplicity and handling the DO block, we'll execute the whole file
         sql_script = f.read()
 
-    print("Executing SQL via RDS Data API...")
-    try:
-        response = rds_data.execute_statement(
-            resourceArn=cluster_arn,
-            secretArn=secret_arn,
-            database=database_name,
-            sql=sql_script
-        )
-        print("Database initialized successfully.")
-        return response
-    except Exception as e:
-        print(f"Error initializing database: {e}")
-        # If the cluster is 'pausing' or 'starting', we might need to retry
-        if "BadRequestException" in str(e) and "is not currently running" in str(e):
-            print("Cluster is waking up... retrying in 15 seconds.")
-            time.sleep(15)
-            return initialize_database(cluster_arn, secret_arn, database_name, sql_file_path)
-        raise e
+    for attempt in range(max_retries):
+        print(f"Executing SQL via RDS Data API (Attempt {attempt + 1}/{max_retries})...")
+        try:
+            response = rds_data.execute_statement(
+                resourceArn=cluster_arn,
+                secretArn=secret_arn,
+                database=database_name,
+                sql=sql_script
+            )
+            print("Database initialized successfully.")
+            return response
+        except Exception as e:
+            # Check if the error is specifically about the cluster not being running
+            is_retryable = "BadRequestException" in str(e) and "is not currently running" in str(e)
+            
+            if is_retryable and attempt < max_retries - 1:
+                print(f"Cluster is waking up... retrying in 15 seconds.")
+                time.sleep(15)
+                continue
+            
+            print(f"Error initializing database: {e}")
+            raise e
 
 if __name__ == "__main__":
     # Check if arguments are provided via CLI, otherwise fallback to help
