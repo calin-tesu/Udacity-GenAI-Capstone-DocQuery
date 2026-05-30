@@ -44,5 +44,5 @@ module "bedrock_kb" {
   aurora_vector_field = "embedding"
   aurora_username   = "dbadmin"
   aurora_secret_arn = data.terraform_remote_state.stack1_foundation.outputs.rds_secret_arn
-  s3_bucket_arn = data.terraform_remote_state.stack1_foundation.outputs.s3_bucket_name
+  s3_bucket_arn = data.terraform_remote_state.stack1_foundation.outputs.s3_bucket_arn
 }

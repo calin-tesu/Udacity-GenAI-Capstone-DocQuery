@@ -38,7 +38,7 @@ output "rds_secret_arn" {
   value = module.aurora_serverless.database_secretsmanager_secret_arn
 }
 
-output "s3_bucket_name" {
+output "s3_bucket_arn" {
   description = "The ARN of the S3 bucket used for the Bedrock Knowledge Base."
   value = module.s3_bucket.s3_bucket_arn
 }
