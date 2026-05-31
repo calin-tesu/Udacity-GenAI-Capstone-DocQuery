@@ -6,7 +6,7 @@ import sys
 # Parameter Injection: I added max_retries=10 as an optional parameter.
 # This allows you to override it later if you find the database takes longer
 # to wake up in certain regions without changing the function's internal logic.
-def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path, max_retries=10):
+def initialize_database(cluster_arn, secret_arn, database_name, table_name, sql_file_path, max_retries=10):
     rds_data = boto3.client('rds-data')
     
     print(f"Reading SQL from {sql_file_path}...")
@@ -17,6 +17,10 @@ def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path, m
     # reading the whole file at once
     with open(sql_file_path, 'r') as f:
         sql_script = f.read()
+
+    # Dynamically replace table name placeholder if it exists in your SQL file
+    # This ensures the SQL matches the Terraform variable exactly
+    sql_script = sql_script.replace("{{TABLE_NAME}}", table_name)
 
     for attempt in range(max_retries):
         print(f"Executing SQL via RDS Data API (Attempt {attempt + 1}/{max_retries})...")
@@ -43,13 +47,14 @@ def initialize_database(cluster_arn, secret_arn, database_name, sql_file_path, m
 
 if __name__ == "__main__":
     # Check if arguments are provided via CLI, otherwise fallback to help
-    if len(sys.argv) < 3:
-        print("Usage: python initialize_db.py <CLUSTER_ARN> <SECRET_ARN>")
+    if len(sys.argv) < 5:
+        print("Usage: python initialize_db.py <CLUSTER_ARN> <SECRET_ARN> <DB_NAME> <TABLE_NAME>")
         sys.exit(1)
 
     CLUSTER_ARN = sys.argv[1]
     SECRET_ARN = sys.argv[2]
-    DB_NAME = "myapp"
+    DB_NAME = sys.argv[3]
+    TABLE_NAME = sys.argv[4]
     
     script_dir = os.path.dirname(__file__)
     sql_path = os.path.join(script_dir, "aurora_sql.sql")
@@ -58,4 +63,4 @@ if __name__ == "__main__":
         print(f"Error: SQL file not found at {sql_path}")
         sys.exit(1)
 
-    initialize_database(CLUSTER_ARN, SECRET_ARN, DB_NAME, sql_path)
+    initialize_database(CLUSTER_ARN, SECRET_ARN, DB_NAME, TABLE_NAME, sql_path)

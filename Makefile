@@ -1,4 +1,4 @@
-.PHONY: all bootstrap config stack1 init-db stack2 ingest destroy help
+.PHONY: all bootstrap config stack1 init-db stack2 ingest config-app destroy help
 
 help:
 	@echo "Available commands:"
@@ -9,6 +9,7 @@ help:
 	@echo "  make init-db     - Initialize the Aurora Database schema"
 	@echo "  make stack2      - Deploy Bedrock Knowledge Base"
 	@echo "  make ingest      - Upload documents and sync"
+	@echo "  make config-app  - Generate .env for Streamlit"
 	@echo "  make destroy     - Tear down all infrastructure"
 
 bootstrap:
@@ -27,7 +28,9 @@ init-db:
 	@echo "--- Initializing Aurora Database ---"
 	$(eval CLUSTER_ARN := $(shell cd stack1 && terraform output -raw aurora_arn))
 	$(eval SECRET_ARN := $(shell cd stack1 && terraform output -raw rds_secret_arn))
-	python scripts/initialize_db.py $(CLUSTER_ARN) $(SECRET_ARN)
+	$(eval DB_NAME := $(shell cd stack1 && terraform output -raw db_name))
+	$(eval TABLE_NAME := $(shell cd stack1 && terraform output -raw aurora_table_name))
+	python scripts/initialize_db.py $(CLUSTER_ARN) $(SECRET_ARN) $(DB_NAME) $(TABLE_NAME)
 
 stack2:
 	@echo "--- Deploying Stack 2 (Bedrock AI) ---"
@@ -39,7 +42,15 @@ ingest:
 	S3_BUCKET_NAME=$(BUCKET_NAME) python scripts/upload_s3.py
 	@echo "Manual Step Required: Log into AWS Console and trigger 'Sync' on Bedrock Knowledge Base."
 
-deploy-all: bootstrap config stack1 init-db stack2 ingest
+config-app:
+	@echo "--- Generating .env file for Streamlit ---"
+	$(eval KB_ID := $(shell cd stack2 && terraform output -raw bedrock_knowledge_base_id))
+	$(eval REGION := $(shell cd stack1 && terraform output -raw aws_region 2>/dev/null || echo "us-west-2"))
+	@echo "KNOWLEDGE_BASE_ID=$(KB_ID)" > .env
+	@echo "AWS_REGION=$(REGION)" >> .env
+	@echo ".env file generated successfully."
+
+deploy-all: bootstrap config stack1 init-db stack2 ingest config-app
 	@echo "--- Full Deployment Complete ---"
 
 destroy:

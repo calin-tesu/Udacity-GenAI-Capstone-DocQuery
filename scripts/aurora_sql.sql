@@ -11,11 +11,11 @@ END $$;
 
 GRANT ALL ON SCHEMA bedrock_integration to bedrock_user;
 
-CREATE TABLE IF NOT EXISTS bedrock_integration.bedrock_kb (
+CREATE TABLE IF NOT EXISTS {{TABLE_NAME}} (
     id uuid PRIMARY KEY,
     embedding vector(1536),
     chunks text,
     metadata json
 );
 
-CREATE INDEX IF NOT EXISTS bedrock_kb_embedding_idx ON bedrock_integration.bedrock_kb USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX IF NOT EXISTS bedrock_kb_embedding_idx ON {{TABLE_NAME}} USING hnsw (embedding vector_cosine_ops);
