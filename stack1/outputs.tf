@@ -42,3 +42,18 @@ output "s3_bucket_arn" {
   description = "The ARN of the S3 bucket used for the Bedrock Knowledge Base."
   value = module.s3_bucket.s3_bucket_arn
 }
+
+output "db_name" {
+  description = "The name of the database created in stack1."
+  value       = var.db_name
+}
+
+output "db_username" {
+  description = "The master username for the database."
+  value       = var.db_username
+}
+
+output "aurora_table_name" {
+  description = "The name of the table used for Bedrock embeddings."
+  value       = var.aurora_table_name
+}

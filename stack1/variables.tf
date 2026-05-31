@@ -62,3 +62,8 @@ variable "db_min_capacity" {
   type    = number
   default = 0.5
 }
+
+variable "aurora_table_name" {
+  type    = string
+  default = "bedrock_integration.bedrock_kb"
+}
